@@ -17,7 +17,7 @@ public class HBaseConnection {
             return hConnection;
         }
 
-        public static HConnection createConnection(String hBaseZookeeperHostName,String port) throws IOException {
+        public static HConnection createConnection(String hBaseZookeeperHostName,String port) {
             try {
                 Configuration conf = HBaseConfiguration.create();
                 conf.set("hbase.zookeeper.quorum", hBaseZookeeperHostName);

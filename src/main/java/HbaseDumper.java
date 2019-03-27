@@ -16,8 +16,11 @@ public class HbaseDumper {
 
     public static void init(String[] argsParams) throws Exception {
         System.out.println("initializing..........");
-        System.out.println(argsParams[0]+argsParams[1]);
+        System.out.println(argsParams[0]+"\nConnecting to the Hbase on: "+argsParams[1]);
         hConnection = HBaseConnection.createConnection(argsParams[1].split(":")[0],argsParams[1].split(":")[1]);
+        if(hConnection == null) {
+            throw new Exception("Cant Connect to hbase");
+        }
     }
 
     public static void main(String args[]) throws IOException {
@@ -35,7 +38,6 @@ public class HbaseDumper {
             } else if (argParams[0].equalsIgnoreCase("load")) {
                 if(argParams.length != 4)
                     throw new Exception("Not Enough Parameters");
-
                 writeToHbase(argParams);
             } else {
                 printWarning();
@@ -52,11 +54,11 @@ public class HbaseDumper {
 
     public static void takeDump(String[] argParams) throws IOException {
         dumperFile = new File(argParams[2]+"_dump.txt");
-        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileWriter);
         if(!dumperFile.exists()) {
             dumperFile.createNewFile();
         }
         fileWriter = new FileOutputStream(dumperFile);
+        ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileWriter);
         int limit =0;
         HTableInterface sourceTableInterface = hConnection.getTable(argParams[2].trim().getBytes());
         Scan scan = new Scan();
