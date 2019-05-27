@@ -1,5 +1,7 @@
+import com.google.common.primitives.UnsignedInteger;
 import org.apache.hadoop.hbase.KeyValue;
 import org.apache.hadoop.hbase.client.*;
+import org.apache.hadoop.hbase.util.Bytes;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -59,7 +61,7 @@ public class HbaseDumper {
         }
         fileWriter = new FileOutputStream(dumperFile);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileWriter);
-        int limit =0;
+        long limit = 0;
         HTableInterface sourceTableInterface = hConnection.getTable(argParams[2].trim().getBytes());
         Scan scan = new Scan();
         scan.setBatch(100);
@@ -67,8 +69,8 @@ public class HbaseDumper {
         ResultScanner scanner = sourceTableInterface.getScanner(scan);
         if (scanner != null) {
             for (Result result : scanner) {
-                if (limit>10000){
-                    break;
+                if (limit%1000 == 0){
+                    System.out.println("Records dumped so far:" +limit);
                 }
                 limit++;
                 if(result!= null) {
@@ -79,11 +81,12 @@ public class HbaseDumper {
                         hbaseRow.setColumnFamily(kv.getFamily());
                         hbaseRow.setQualifier(kv.getQualifier());
                         hbaseRow.setValue(kv.getValue());
-
+                        System.out.println(Bytes.toString(kv.getRow()));
                         objectOutputStream.writeObject(hbaseRow);
                     }
                 }
             }
+            System.out.println("Total Records dumped: " + limit);
         }
         fileWriter.close();
     }
