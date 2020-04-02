@@ -16,13 +16,15 @@ repositories {
 dependencies {
     testCompile group: 'junit', name: 'junit', version: '4.12'
     compile group: 'com.google.inject', name: 'guice', version: '4.1.0'
-    compile('org.apache.hbase:hbase-client:0.98.6-cdh5.3.0') {
-        exclude group: 'com.sun.jersey'
-        exclude group: 'tomcat'
-        /*exclude group: 'org.apache.hadoop', module: 'hadoop-common'*/
-        exclude group: 'org.apache.hadoop', module: 'hadoop-core'
-        exclude group: 'javax.servlet'
-    }
+    compile group: 'org.apache.hbase', name: 'hbase-client', version: '2.1.0'
+
+//    compile('org.apache.hbase:hbase-client:2.1.0') {
+//        exclude group: 'com.sun.jersey'
+//        exclude group: 'tomcat'
+//        /*exclude group: 'org.apache.hadoop', module: 'hadoop-common'*/
+//        exclude group: 'org.apache.hadoop', module: 'hadoop-core'
+//        exclude group: 'javax.servlet'
+//    }
 }
 
 //create a single Jar with all dependencies

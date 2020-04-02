@@ -1,5 +1,7 @@
-import com.google.common.primitives.UnsignedInteger;
+import org.apache.hadoop.hbase.Cell;
+import org.apache.hadoop.hbase.CellUtil;
 import org.apache.hadoop.hbase.KeyValue;
+import org.apache.hadoop.hbase.TableName;
 import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.util.Bytes;
 
@@ -8,12 +10,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class HbaseDumper {
-    private static HConnection hConnection;
+    private static Connection hConnection;
     private static File dumperFile;
     private static FileOutputStream fileWriter;
     private static FileInputStream fileInputStream;
     private static ObjectInputStream objectInputStream;
-    private static HTableInterface destTableInterface;
+    private static Table destTableInterface;
 
 
     public static void init(String[] argsParams) throws Exception {
@@ -62,7 +64,7 @@ public class HbaseDumper {
         fileWriter = new FileOutputStream(dumperFile);
         ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileWriter);
         long limit = 0;
-        HTableInterface sourceTableInterface = hConnection.getTable(argParams[2].trim().getBytes());
+        Table sourceTableInterface = hConnection.getTable(TableName.valueOf(argParams[2].trim()));
         Scan scan = new Scan();
         scan.setBatch(100);
         scan.setCaching(100);
@@ -74,14 +76,13 @@ public class HbaseDumper {
                 }
                 limit++;
                 if(result!= null) {
-                    for (KeyValue kv : result.raw()) {
+                    for (Cell kv : result.listCells()) {
                         HbaseRow hbaseRow = new HbaseRow();
-
-                        hbaseRow.setRowkey(result.getRow());
-                        hbaseRow.setColumnFamily(kv.getFamily());
-                        hbaseRow.setQualifier(kv.getQualifier());
-                        hbaseRow.setValue(kv.getValue());
-                        System.out.println(Bytes.toString(kv.getRow()));
+                        hbaseRow.setRowkey(CellUtil.cloneRow(kv));
+                        hbaseRow.setColumnFamily(CellUtil.cloneFamily(kv));
+                        hbaseRow.setQualifier(CellUtil.cloneQualifier(kv));
+                        hbaseRow.setValue(CellUtil.cloneValue(kv));
+                        System.out.println(Bytes.toString(CellUtil.cloneRow(kv)));
                         objectOutputStream.writeObject(hbaseRow);
                     }
                 }
@@ -96,7 +97,7 @@ public class HbaseDumper {
         List<Put> put = new ArrayList<>();
         HbaseRow hbaseRow;
         try {
-            destTableInterface = hConnection.getTable(argParams[3].getBytes());
+            destTableInterface = hConnection.getTable(TableName.valueOf(argParams[3]));
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -107,9 +108,9 @@ public class HbaseDumper {
                 System.out.println(hbaseRow.toString());
                 Put puttemp = new  Put(hbaseRow.getRowkey());
                 if (hbaseRow.getRowkey() != null) {
-                    puttemp.add(hbaseRow.getColumnFamily(), hbaseRow.getQualifier(), hbaseRow.getValue());
+                    puttemp.addColumn(hbaseRow.getColumnFamily(), hbaseRow.getQualifier(), hbaseRow.getValue());
                 }else if(hbaseRow.getRowkey() == null) {
-                    puttemp.add(hbaseRow.getColumnFamily(), hbaseRow.getQualifier(), "".getBytes());
+                    puttemp.addColumn(hbaseRow.getColumnFamily(), hbaseRow.getQualifier(), "".getBytes());
                 }else {
                     System.out.println("invalid data ");
                 }

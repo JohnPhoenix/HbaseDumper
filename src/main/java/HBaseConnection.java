@@ -1,28 +1,28 @@
 import com.google.inject.Singleton;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HConnection;
-import org.apache.hadoop.hbase.client.HConnectionManager;
+import org.apache.hadoop.hbase.client.Connection;
+import org.apache.hadoop.hbase.client.ConnectionFactory;
 
 import java.io.IOException;
 
 @Singleton
 public class HBaseConnection {
 
-        private static HConnection hConnection;
+        private static Connection hConnection;
 
         private HBaseConnection() { }
 
-        public static HConnection getConnection() {
+        public static Connection getConnection() {
             return hConnection;
         }
 
-        public static HConnection createConnection(String hBaseZookeeperHostName,String port) {
+        public static Connection createConnection(String hBaseZookeeperHostName,String port) {
             try {
                 Configuration conf = HBaseConfiguration.create();
                 conf.set("hbase.zookeeper.quorum", hBaseZookeeperHostName);
                 conf.set("hbase.zookeeper.property.clientPort", port);
-                hConnection = HConnectionManager.createConnection(conf);
+                hConnection = ConnectionFactory.createConnection(conf);
                 return hConnection;
             }catch (Exception ex) {
                 ex.printStackTrace();
